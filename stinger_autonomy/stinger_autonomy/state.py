@@ -74,7 +74,7 @@ class StateMachine(Node):
 
         self.get_logger().info(f"Red: {left_gate_location}, Green: {right_gate_location}")
 
-        if left_gate_location < 0 or rigit ght_gate_location < 0:
+        if left_gate_location < 0 or right_gate_location < 0:
             return
         
         deg_per_pixel = self.hfov / self.image_width
