@@ -91,12 +91,15 @@ class StateMachine(Node):
 
         self.get_logger().info(f"Turn angle: {turn_angle}")
 
+        cmd_vel.angular.z = turn_angle
+
         if abs(cmd_vel.angular.z) > 0.1:
             cmd_vel.angular.z = np.sign(cmd_vel.angular.z) * 0.1
 
         # TODO: 7.1.a Transition condition to move out of Search State
         ### STUDENT CODE HERE
-
+        if left_gate_location >= 0 and right_gate_location >= 0 and abs(diff_mid) < 50:
+            self.state = State.Approaching
         ### END STUDENT CODE
         return cmd_vel
     
@@ -127,7 +130,9 @@ class StateMachine(Node):
 
         # TODO: 7.1.b Transition condition to move out of Approach State
         ### STUDENT CODE HERE
-
+        if gate_fov_bound > 0.5:
+            self.state = State.Passing_Through
+            self.pre_push_time = self.get_clock().now()
         ### END STUDENT CODE
 
         return cmd_vel
