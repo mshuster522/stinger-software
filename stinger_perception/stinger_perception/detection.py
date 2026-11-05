@@ -38,11 +38,11 @@ class Detection(Node):
 
         # TODO: 6.1.a Understanding HSV
         # True or False, as my Value approaches 0, the color becomes darker.
-        self.question_1 = None
+        self.question_1 = True
         # True or False, as my Saturation increases, the color becomes whiter.
-        self.question_2 = None
+        self.question_2 = False
         # [0, 255), what hue value might cyan be.
-        self.question_3 = None
+        self.question_3 = 90
         ### STUDENT CODE HERE
 
         ### END STUDENT CODE
@@ -71,15 +71,31 @@ class Detection(Node):
 
         # TODO: 6.1.b Masking 
         ### STUDENT CODE HERE
+        self.red_lower = np.array([0,100,20])
+        self.red_upper = np.array([30, 255, 255])
+        red_mask = cv2.inRange(self.hsv, self.red_upper, self.red_lower)
+        # self.red_lower = np.array([160,100,20])
+        # self.red_upper = np.array([179,255,255])
+        # red_mask_high = cv2.inRange(self.hsv, self.red_upper, self.red_lower)
+        # red_mask = cv2.bitwise_or(red_mask_low, red_mask_high)
 
+        self.green_lower = np.array([40, 0, 0])
+        self.green_upper = np.array([85, 255, 255])
+        green_mask = cv2.inRange(self.hsv, self.green_upper, self.green_lower)
         ### END STUDENT CODE
         
         cv2.imshow("Red_mask", red_mask)
         cv2.imshow("Green_mask", green_mask)
         cv2.waitKey(1)
 
+        # self.get_logger().info(
+        #     f"Red Mask shape: {red_mask.shape}, dtype: {red_mask.dtype}"
+        # )
+        # self.get_logger().info(
+        #     f"Green Mask shape: {green_mask.shape}, dtype: {green_mask.dtype}"
+        # )
         # Find contours for each color
-        red_buoy_list = self.find_circles(red_mask, )
+        red_buoy_list = self.find_circles(red_mask)
         green_buoy_list = self.find_circles(green_mask)
 
         self.get_logger().info(f"Red buoys: {red_buoy_list}")
@@ -103,7 +119,16 @@ class Detection(Node):
 
         # TODO: 6.1.c Contours
         ### STUDENT CODE HERE
+        #mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+        # self.get_logger().info(
+        #     f"Mask shape: {mask.shape}, dtype: {mask.dtype}"
+        # )
+        mask = mask.astype(np.uint8)
+        # self.get_logger().info(
+        #     f"Mask shape: {mask.shape}, dtype: {mask.dtype}"
+        # )
 
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         ### END STUDENT CODE
         detected = []
 
@@ -112,7 +137,8 @@ class Detection(Node):
             (x, y), radius = cv2.minEnclosingCircle(cnt)
             cv2.circle(self.frame, (int(x), int(y)), int(radius), (255, 0, 0), 3)
             ### STUDENT CODE HERE
-
+            if radius > 10:
+                detected.append((x, y, radius))
             ### END STUDENT CODE
         cv2.imshow("original_frame", self.frame)
         detected_sorted = sorted(detected, key=lambda x: x[2], reverse=True)
