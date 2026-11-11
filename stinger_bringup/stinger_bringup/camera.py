@@ -43,6 +43,7 @@ class CameraPublisher(Node):
         ) # queue size 10
         self.timer = self.create_timer(0.033, self.publish_image)  # Publish at 30 Hz
         self.cap = cv2.VideoCapture('/dev/video0', cv2.CAP_V4L2) # TODO: change this by locating the camera using cmd "ls /dev/video*"
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         self.cap.set(
             cv2.CAP_PROP_FOURCC,
             cv2.VideoWriter_fourcc(*'MJPG')
@@ -63,19 +64,6 @@ class CameraPublisher(Node):
 
         elapsed = time.perf_counter() - start
 
-        self.get_logger().info(
-            f"FPS: {self.cap.get(cv2.CAP_PROP_FPS)}"
-        )
-
-        self.get_logger().info(
-            f"Width: {self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)}"
-        )
-
-        self.get_logger().info(
-            f"Height: {self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}"
-        )
-
-        self.get_logger().info(f"Read time: {elapsed:.3f}s")
         if ret: # is captured successfully
             # Convert OpenCV image to ROS Image message
             msg = self.br.cv2_to_imgmsg(frame, 'bgr8')
