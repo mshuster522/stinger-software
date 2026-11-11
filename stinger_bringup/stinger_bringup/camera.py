@@ -44,7 +44,7 @@ class CameraPublisher(Node):
         self.cap = cv2.VideoCapture('/dev/video0', cv2.CAP_V4L2) # TODO: change this by locating the camera using cmd "ls /dev/video*"
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        self.cap.set(cv2.CAP_PROP_FPS, 60) # frames per second is 60
+        self.cap.set(cv2.CAP_PROP_FPS, 30) # frames per second is 60
         self.br = CvBridge()
 
         if not self.cap.isOpened():
@@ -52,7 +52,13 @@ class CameraPublisher(Node):
             return
 
     def publish_image(self):
+        start = time.perf_counter()
+
         ret, frame = self.cap.read() # capture a frame from the usb cam
+
+        elapsed = time.perf_counter() - start
+
+        self.get_logger().info(f"Read time: {elapsed:.3f}s")
         if ret: # is captured successfully
             # Convert OpenCV image to ROS Image message
             msg = self.br.cv2_to_imgmsg(frame, 'bgr8')
