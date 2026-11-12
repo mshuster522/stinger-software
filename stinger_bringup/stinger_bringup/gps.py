@@ -33,7 +33,9 @@ class GpsPublisher(Node):
     def read_serial_data(self):
         if self.serial_port.in_waiting > 0:
             line = self.serial_port.readline().decode('ascii', errors='ignore').strip()
+            self.get_logger().info(f'GPS RAW: {line}')
             if line.startswith('$GNGGA') or line.startswith('$GPGGA'): # for our case, it's GPGGA
+                self.get_logger().info('Found GGA sentence')
                 self.parse_nmea_and_publish(line)
 
     def parse_nmea_and_publish(self, nmea_sentence):
@@ -42,7 +44,12 @@ class GpsPublisher(Node):
         # https://receiverhelp.trimble.com/alloy-gnss/en-us/NMEA-0183messages_MessageOverview.html
         try:
             parts = nmea_sentence.split(',')
-            if len(parts) < 10 or parts[6] == '0':  # Check for valid fix
+            if len(parts) < 10:
+                self.get_logger().error(f'Invalid GGA sentence: {parts}')
+                return
+
+            if parts[6] == '0':
+                self.get_logger().warn('GPS has no valid fix')
                 return
 
             latitude = self.nmea_to_decimal(parts[2], parts[3])
